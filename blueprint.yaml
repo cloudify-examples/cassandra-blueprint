@@ -45,12 +45,6 @@ node_templates:
                 PLATFORM: { get_input: Package-Format }
         start:
           implementation: scripts/controlCassandra.sh
-          inputs:
-            process:
-              args: [start]
         stop:
           implementation: scripts/controlCassandra.sh
-          inputs:
-            process:
-              args: [stop]
 relationships: {}
