@@ -1,4 +1,5 @@
 tosca_definitions_version: cloudify_dsl_1_2
+
 imports:
   - 'http://www.getcloudify.org/spec/cloudify/3.3/types.yaml'
   - 'http://getcloudify.org.s3.amazonaws.com/spec/puppet-plugin/1.3/plugin.yaml'
@@ -9,32 +10,102 @@ imports:
   - 'http://www.getcloudify.org/spec/diamond-plugin/1.3/plugin.yaml'
   - 'http://getcloudify.org.s3.amazonaws.com/spec/chef-plugin/1.3/plugin.yaml'
   - 'http://getcloudify.org.s3.amazonaws.com/spec/aws-plugin/1.3/plugin.yaml'
-plugins: {}
+
 inputs:
-  Cassandra-Server-IP:
-    default: 10.10.1.10
-  Package-Format:
+
+  aws_access_key_id:
+    type: string
+
+  aws_secret_access_key:
+    type: string
+
+  ec2_region_name:
+    type: string
+
+  use_existing_security_group:
+    type: boolean
+    default: false
+
+  security_group_id:
+    type: string
+    default: ''
+
+  use_existing_keypair:
+    type: boolean
+    default: false
+
+  keypair_name:
+    type: string
+    default: cfy_local_keypair
+
+  ssh_key_filename:
+    type: string
+    default: ~/.ssh/cfy_cassandra_keypair.pem
+
+  server_instance_type:
+    type: string
+
+  server_image_id:
+    type: string
+
+  package_format:
     default: rpm
-node_types: {}
+
+dsl_definitions:
+  aws_config: &AWS_CONFIG
+    aws_access_key_id: { get_input: aws_access_key_id }
+    aws_secret_access_key: { get_input: aws_secret_access_key }
+    ec2_region_name: { get_input: ec2_region_name }
+
+relationships:
+  slave_depends_on_master:
+    derived_from: cloudify.relationships.depends_on
+    interfaces:
+      source_interfaces:
+        cloudify.interfaces.relationship_lifecycle:
+          preconfigure: scripts/joinCassandraCluster.sh
+
 node_templates:
-  Cassandra-Server:
-    type: cloudify.nodes.Compute
-    instances:
-      deploy: 1
+
+  keypair:
+    type: cloudify.aws.nodes.KeyPair
     properties:
-      ip:
-        get_input: Cassandra-Server-IP
-      cloudify_agent:
-        user: root
-        key: /tmp/id_rsa.pem
-    relationships: []
-  Cassandra-Installation:
+      aws_config: *AWS_CONFIG
+      use_external_resource: { get_input: use_existing_keypair }
+      resource_id: { get_input: keypair_name }
+      private_key_path: { get_input: ssh_key_filename }
+
+  cassandra_security_group:
+    type: cloudify.aws.nodes.SecurityGroup
+    properties:
+      aws_config: *AWS_CONFIG
+      use_external_resource: { get_input: use_existing_security_group }
+      resource_id: { get_input: security_group_id }
+      description: Security group for Cassandra Cluster
+      rules:
+        # http://stackoverflow.com/questions/28736846/how-to-add-inbound-rules-for-aws-ec2-security-group-for-all-traffic
+        - ip_protocol: -1
+          from_port: None
+          to_port: None
+          cidr_ip: 0.0.0.0/0
+
+  cassandra_seed_host:
+    type: cloudify.aws.nodes.Instance
+    properties:
+      aws_config: *AWS_CONFIG
+      image_id: { get_input: server_image_id }
+      instance_type: { get_input: server_instance_type }
+    relationships:
+      - target: keypair
+        type: cloudify.aws.relationships.instance_connected_to_keypair
+      - target: application_security_group
+        type: cloudify.aws.relationships.instance_connected_to_security_group
+
+  cassandra_seed_installation:
     type: cloudify.nodes.DBMS
-    instances:
-      deploy: 1
     relationships:
       - type: cloudify.relationships.contained_in
-        target: Cassandra-Server
+        target: cassandra_seed_host
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -42,9 +113,47 @@ node_templates:
           inputs:
             process:
               env:
-                PLATFORM: { get_input: Package-Format }
+                PLATFORM: { get_input: package_format }
         start:
           implementation: scripts/controlCassandra.sh
         stop:
           implementation: scripts/controlCassandra.sh
-relationships: {}
+
+  cassandra_peer_host:
+    type: cloudify.aws.nodes.Instance
+    properties:
+      aws_config: *AWS_CONFIG
+      image_id: { get_input: server_image_id }
+      instance_type: { get_input: server_instance_type }
+    relationships:
+      - target: keypair
+        type: cloudify.aws.relationships.instance_connected_to_keypair
+      - target: application_security_group
+        type: cloudify.aws.relationships.instance_connected_to_security_group
+
+  cassandra_peer_installation:
+    type: cloudify.nodes.DBMS
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: cassandra_peer_host
+      - type: slave_depends_on_master
+        target: cassandra_seed_host
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/configureCassandra.sh
+          inputs:
+            process:
+              env:
+                PLATFORM: { get_input: package_format }
+        start:
+          implementation: scripts/controlCassandra.sh
+        stop:
+          implementation: scripts/controlCassandra.sh
+
+outputs:
+
+  cassandra:
+    description: Cassandra cluster seed node
+    value:
+      cassandra_cluster: { get_attribute: [ cassandra_seed_host, ip ] }
