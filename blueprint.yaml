@@ -9,7 +9,7 @@ imports:
   - 'http://getcloudify.org.s3.amazonaws.com/spec/docker-plugin/1.3/plugin.yaml'
   - 'http://www.getcloudify.org/spec/diamond-plugin/1.3/plugin.yaml'
   - 'http://getcloudify.org.s3.amazonaws.com/spec/chef-plugin/1.3/plugin.yaml'
-  - 'http://getcloudify.org.s3.amazonaws.com/spec/aws-plugin/1.3/plugin.yaml'
+  - 'http://getcloudify.org.s3.amazonaws.com/spec/aws-plugin/1.4/plugin.yaml'
 
 inputs:
 
@@ -26,9 +26,37 @@ inputs:
     type: boolean
     default: false
 
+  use_existing_subnet:
+    type: boolean
+    default: false
+
+  use_existing_vpc:
+    type: boolean
+    default: false
+
   security_group_id:
     type: string
-    default: ''
+    default: ' '
+
+  subnet_id:
+    type: string
+    default: ' '
+
+  vpc_id:
+    type: string
+    default: ' '
+
+  subnet_cidr:
+    type: string
+    default: ' '
+
+  vpc_cidr:
+    type: string
+    default: ' '
+
+  subnet_zone:
+    type: string
+    default: ' '
 
   use_existing_keypair:
     type: boolean
@@ -41,6 +69,10 @@ inputs:
   ssh_key_filename:
     type: string
     default: ~/.ssh/cfy_cassandra_keypair.pem
+
+  ssh_username:
+    type: string
+    default: ec2-user
 
   server_instance_type:
     type: string
@@ -60,10 +92,9 @@ dsl_definitions:
 relationships:
   slave_depends_on_master:
     derived_from: cloudify.relationships.depends_on
-    interfaces:
-      source_interfaces:
-        cloudify.interfaces.relationship_lifecycle:
-          preconfigure: scripts/joinCassandraCluster.sh
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        preconfigure: scripts/joinClusterCassandra.sh
 
 node_templates:
 
@@ -74,6 +105,23 @@ node_templates:
       use_external_resource: { get_input: use_existing_keypair }
       resource_id: { get_input: keypair_name }
       private_key_path: { get_input: ssh_key_filename }
+
+  cassandra_subnet:
+    type: cloudify.aws.nodes.Subnet
+    properties:
+      aws_config: *AWS_CONFIG
+      use_external_resource: { get_input: use_existing_subnet }
+      resource_id: { get_input: subnet_id }
+      cidr_block: { get_input: subnet_cidr }
+      availability_zone: { get_input: subnet_zone }
+
+  cassandra_vpc:
+    type: cloudify.aws.nodes.VPC
+    properties:
+      aws_config: *AWS_CONFIG
+      use_external_resource: { get_input: use_existing_vpc }
+      resource_id: { get_input: vpc_id }
+      cidr_block: { get_input: vpc_cidr }
 
   cassandra_security_group:
     type: cloudify.aws.nodes.SecurityGroup
@@ -88,18 +136,26 @@ node_templates:
           from_port: None
           to_port: None
           cidr_ip: 0.0.0.0/0
+    relationships:
+      - type: cloudify.aws.relationships.security_group_contained_in_vpc
+        target: cassandra_vpc
 
   cassandra_seed_host:
     type: cloudify.aws.nodes.Instance
     properties:
+      agent_config:
+        user: { get_input: ssh_username }
+        key: { get_input: ssh_key_filename }
       aws_config: *AWS_CONFIG
       image_id: { get_input: server_image_id }
       instance_type: { get_input: server_instance_type }
     relationships:
       - target: keypair
         type: cloudify.aws.relationships.instance_connected_to_keypair
-      - target: application_security_group
+      - target: cassandra_security_group
         type: cloudify.aws.relationships.instance_connected_to_security_group
+      - target: cassandra_subnet
+        type: cloudify.aws.relationships.instance_contained_in_subnet
 
   cassandra_seed_installation:
     type: cloudify.nodes.DBMS
@@ -122,14 +178,19 @@ node_templates:
   cassandra_peer_host:
     type: cloudify.aws.nodes.Instance
     properties:
+      agent_config:
+        user: { get_input: ssh_username }
+        key: { get_input: ssh_key_filename }
       aws_config: *AWS_CONFIG
       image_id: { get_input: server_image_id }
       instance_type: { get_input: server_instance_type }
     relationships:
       - target: keypair
         type: cloudify.aws.relationships.instance_connected_to_keypair
-      - target: application_security_group
+      - target: cassandra_security_group
         type: cloudify.aws.relationships.instance_connected_to_security_group
+      - target: cassandra_subnet
+        type: cloudify.aws.relationships.instance_contained_in_subnet
 
   cassandra_peer_installation:
     type: cloudify.nodes.DBMS

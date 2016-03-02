@@ -7,13 +7,7 @@ cat >> $wrapped_script_for_sudo << "wrapped_script_for_sudo_EOF"
 
 
 
-command=`ctx operation name | awk -F . '{print $NF}'`
-
-ctx logger info "$command Cassandra BEGIN"
-
-service cassandra $command
-
-ctx logger info "$command Cassandra COMPLETED"
+ctx target instance runtime_properties ip > /tmp/seed-ip
 
 
 

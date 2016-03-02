@@ -1,4 +1,11 @@
 #!/bin/bash
+wrapped_script_for_sudo=`mktemp`
+chmod +x $wrapped_script_for_sudo
+echo '#!/bin/bash' > $wrapped_script_for_sudo
+echo "PATH=$PATH" >> $wrapped_script_for_sudo
+cat >> $wrapped_script_for_sudo << "wrapped_script_for_sudo_EOF"
+
+
 
 ctx logger info "configure Cassandra BEGIN"
 
@@ -32,3 +39,9 @@ case $PLATFORM in
 esac
 
 ctx logger info "configure Cassandra COMPLETED"
+
+
+
+wrapped_script_for_sudo_EOF
+sudo -E $wrapped_script_for_sudo
+rm $wrapped_script_for_sudo
