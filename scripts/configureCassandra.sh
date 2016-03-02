@@ -19,6 +19,7 @@ case $PLATFORM in
 		apt-get update
 		apt-get -y install $packages
 		service cassandra stop
+		cassandra_conf=/etc/cassandra/cassandra.yaml
 		;;
 	rpm)
 		repoFile=/etc/yum.repos.d/datastax.repo
@@ -33,6 +34,7 @@ case $PLATFORM in
 		java -version 2>&1 | egrep '1.[78]' > /dev/null || packages="java-1.7.0-openjdk-headless $packages"
 		yum -y install $packages
 		chkconfig --add cassandra
+		cassandra_conf=/etc/cassandra/conf/cassandra.yaml
 		;;
 	*)
 		echo "invalid platform type (package manager format)" >&2
@@ -46,9 +48,9 @@ if [ -e /tmp/seed-ip ] ; then {
 
 	ip=`ctx instance runtime_properties ip`
 	seed=`cat /tmp/seed-ip`
-	sed -ri "s/^([ ]+- seeds: \")127.0.0.1(\".*)$/\\1$seed\\2/" /etc/cassandra/cassandra.yaml
-	sed -ri "s/^(listen_address: )localhost(.*)$/\1$ip\2/" /etc/cassandra/cassandra.yaml
-	sed -ri "s/^(rpc_address: )localhost(.*)$/\10.0.0.0\2/" /etc/cassandra/cassandra.yaml
+	sed -ri "s/^([ ]+- seeds: \")127.0.0.1(\".*)$/\\1$seed\\2/" $cassandra_conf
+	sed -ri "s/^(listen_address: )localhost(.*)$/\1$ip\2/" $cassandra_conf
+	sed -ri "s/^(rpc_address: )localhost(.*)$/\10.0.0.0\2/" $cassandra_conf
 
 } ; else {
 
@@ -70,9 +72,9 @@ if [ -e /tmp/seed-ip ] ; then {
 	ip=`ctx instance runtime_properties ip`
 	sed -ri "s/127.0.0.1/$ip/" /etc/opscenter/clusters/Test_Cluster.conf
 	seed=$ip
-	sed -ri "s/^([ ]+- seeds: \")127.0.0.1(\".*)$/\\1$seed\\2/" /etc/cassandra/cassandra.yaml
-	sed -ri "s/^(listen_address: )localhost(.*)$/\1$ip\2/" /etc/cassandra/cassandra.yaml
-	sed -ri "s/^(rpc_address: )localhost(.*)$/\10.0.0.0\2/" /etc/cassandra/cassandra.yaml
+	sed -ri "s/^([ ]+- seeds: \")127.0.0.1(\".*)$/\\1$seed\\2/" $cassandra_conf
+	sed -ri "s/^(listen_address: )localhost(.*)$/\1$ip\2/" $cassandra_conf
+	sed -ri "s/^(rpc_address: )localhost(.*)$/\10.0.0.0\2/" $cassandra_conf
 
 } ;  fi
 
