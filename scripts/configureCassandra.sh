@@ -50,8 +50,7 @@ if [ -e /tmp/seed-ip ] ; then {
 	ip=`route -n | awk '/^0.0.0.0/{print $NF}' | xargs ifconfig | awk '$1=="inet"{print $2}'`
 	seed=`cat /tmp/seed-ip`
 	sed -ri "s/^([ ]+- seeds: \")127.0.0.1(\".*)$/\\1$seed\\2/" $cassandra_conf
-	sed -ri "s/^(listen_address: )localhost(.*)$/\1$ip\2/" $cassandra_conf
-	sed -ri "s/^(rpc_address: )localhost(.*)$/\10.0.0.0\2/" $cassandra_conf
+	sed -ri "s/^(listen|rpc)(_address: )localhost(.*)$/\1\2$ip\3/" $cassandra_conf
 
 } ; else {
 
