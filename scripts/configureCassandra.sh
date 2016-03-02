@@ -43,10 +43,11 @@ case $PLATFORM in
 esac
 
 rm -rf /var/lib/cassandra/*
+chown -R cassandra:cassandra /var/lib/cassandra
 
 if [ -e /tmp/seed-ip ] ; then {
 
-	ip=`ctx instance runtime_properties ip`
+	ip=`route -n | awk '/^0.0.0.0/{print $NF}' | xargs ifconfig | awk '$1=="inet"{print $2}'`
 	seed=`cat /tmp/seed-ip`
 	sed -ri "s/^([ ]+- seeds: \")127.0.0.1(\".*)$/\\1$seed\\2/" $cassandra_conf
 	sed -ri "s/^(listen_address: )localhost(.*)$/\1$ip\2/" $cassandra_conf
@@ -69,7 +70,7 @@ if [ -e /tmp/seed-ip ] ; then {
 	password = 
 	cql_port = 9042
 	EOF
-	ip=`ctx instance runtime_properties ip`
+	ip=`route -n | awk '/^0.0.0.0/{print $NF}' | xargs ifconfig | awk '$1=="inet"{print $2}'`
 	sed -ri "s/127.0.0.1/$ip/" /etc/opscenter/clusters/Test_Cluster.conf
 	seed=$ip
 	sed -ri "s/^([ ]+- seeds: \")127.0.0.1(\".*)$/\\1$seed\\2/" $cassandra_conf
