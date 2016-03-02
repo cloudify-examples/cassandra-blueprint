@@ -12,6 +12,7 @@ command=`ctx operation name | awk -F . '{print $NF}'`
 ctx logger info "$command Cassandra BEGIN"
 
 service cassandra $command
+[ -e /tmp/seed-ip ] || service opscenterd $command
 
 ctx logger info "$command Cassandra COMPLETED"
 
