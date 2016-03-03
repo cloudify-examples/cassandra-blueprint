@@ -152,7 +152,7 @@ node_templates:
       aws_config: *AWS_CONFIG
       image_id: { get_input: server_image_id }
       instance_type: { get_input: server_instance_type }
-      name: { get_attribute: id }
+      name: { get_attribute: [ cassandra_seed_host, id ] }
     relationships:
       - target: keypair
         type: cloudify.aws.relationships.instance_connected_to_keypair
@@ -190,7 +190,7 @@ node_templates:
       aws_config: *AWS_CONFIG
       image_id: { get_input: server_image_id }
       instance_type: { get_input: server_instance_type }
-      name: { get_attribute: id }
+      name: { get_attribute: [ cassandra_peer_host, id ] }
     relationships:
       - target: keypair
         type: cloudify.aws.relationships.instance_connected_to_keypair
