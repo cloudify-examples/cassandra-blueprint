@@ -7,10 +7,12 @@ cat >> $wrapped_script_for_sudo << "wrapped_script_for_sudo_EOF"
 
 
 
-ctx target instance runtime_properties ip > /tmp/seed-ip
+ctx target instance runtime_properties ip > /etc/cassandra/cloudify-seed-ip
 
 
 
 wrapped_script_for_sudo_EOF
 sudo -E $wrapped_script_for_sudo
+code=$?
 rm $wrapped_script_for_sudo
+exit $code
