@@ -25,15 +25,15 @@ inputs:
 
   use_existing_security_group:
     type: boolean
-    default: false
+    default: true
 
   use_existing_subnet:
     type: boolean
-    default: false
+    default: true
 
   use_existing_vpc:
     type: boolean
-    default: false
+    default: true
 
   security_group_id:
     type: string
