@@ -14,8 +14,9 @@ mkdir -p /var/lib/cassandra
 chown cassandra:cassandra /var/lib/cassandra
 
 cassandra_conf=`ls /etc/cassandra{,/conf}/cassandra.yaml 2> /dev/null`
+
 seed=/etc/cassandra/cloudify-seed-ip
-ip=`ctx instance runtime_properties host_ip`
+ip=`ip route show to default | sed -rn 's/.*src ([^ ]+) .*/\1/p'`
 
 if [ -e $seed ] ; then {
 
@@ -45,7 +46,7 @@ cat >> /etc/opscenter/clusters/Test_Cluster.conf <<- "EOF"
 	password = 
 	cql_port = 9042
 	EOF
-sed -ri "s/127.0.0.1/$ip/" /etc/opscenter/clusters/Test_Cluster.conf
+sed -ri "s/127.0.0.1/$seed/" /etc/opscenter/clusters/Test_Cluster.conf
 
 ctx logger info "configure Cassandra COMPLETED"
 

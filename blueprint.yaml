@@ -55,7 +55,7 @@ inputs:
     type: string
     default: ' '
 
-  subnet_zone:
+  subnet_avail_zone:
     type: string
     default: ' '
 
@@ -116,7 +116,7 @@ node_templates:
       use_external_resource: { get_input: use_existing_subnet }
       resource_id: { get_input: subnet_id }
       cidr_block: { get_input: subnet_cidr }
-      availability_zone: { get_input: subnet_zone }
+      availability_zone: { get_input: subnet_avail_zone }
 
   cassandra_vpc:
     type: cloudify.aws.nodes.VPC
@@ -152,7 +152,6 @@ node_templates:
       aws_config: *AWS_CONFIG
       image_id: { get_input: server_image_id }
       instance_type: { get_input: server_instance_type }
-      name: { get_attribute: [ cassandra_seed_host, id ] }
     relationships:
       - target: keypair
         type: cloudify.aws.relationships.instance_connected_to_keypair
@@ -190,7 +189,6 @@ node_templates:
       aws_config: *AWS_CONFIG
       image_id: { get_input: server_image_id }
       instance_type: { get_input: server_instance_type }
-      name: { get_attribute: [ cassandra_peer_host, id ] }
     relationships:
       - target: keypair
         type: cloudify.aws.relationships.instance_connected_to_keypair
