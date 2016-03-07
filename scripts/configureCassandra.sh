@@ -16,7 +16,7 @@ chown cassandra:cassandra /var/lib/cassandra
 cassandra_conf=`ls /etc/cassandra{,/conf}/cassandra.yaml 2> /dev/null`
 
 seed=/etc/cassandra/cloudify-seed-ip
-ip=`ip route show to default | sed -rn 's/.*src ([^ ]+) .*/\1/p'`
+ip=`ctx instance host_ip`
 
 if [ -e $seed ] ; then {
 
@@ -28,7 +28,7 @@ if [ -e $seed ] ; then {
 
 } ;  fi
 
-sed -ri "s/^([ ]+- seeds: \")127.0.0.1(\".*)$/\\1$seed\\2/" $cassandra_conf
+sed -ri "s/^([ ]+- seeds: \")127.0.0.1(\".*)$/\1$seed\2/" $cassandra_conf
 sed -ri "s/^(listen|rpc)(_address: )localhost(.*)$/\1\2$ip\3/" $cassandra_conf
 
 mkdir -p /etc/opscenter/clusters

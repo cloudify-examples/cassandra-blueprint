@@ -1,0 +1,36 @@
+# These variables REQUIRE your own values. Obtain them from the “IAM” console in AWS.
+aws_access_key_id:
+aws_secret_access_key:
+
+# These variables require a consistent set of values. For example, the below is a valid combination.
+ec2_region_name: us-east-1
+server_image_id: ami-2051294a
+ssh_username: ec2-user
+package_format: rpm
+server_instance_type: c4.large
+
+# The id is required unless you change this to false in which case you must supply the subsequent values.
+# See the blueprint and http://docs.getcloudify.org/latest/plugins/aws/ and http://boto.readthedocs.org/en/latest/
+#use_existing_security_group: true
+existing_security_group_id:
+#new_security_group_protocol: -1
+#new_security_group_from_port: None
+#new_security_group_to_port: None
+#new_security_group_cidr: 0.0.0.0/0
+# The above values would create a security group wide open on all ports and protocols.
+# See http://stackoverflow.com/questions/28736846/how-to-add-inbound-rules-for-aws-ec2-security-group-for-all-traffic
+
+# The id is required unless you change this to false in which case you must supply the subsequent values.
+#use_existing_subnet: true
+existing_subnet_id:
+#new_subnet_avail_zone:
+#new_subnet_cidr:
+
+# The id is required unless you change this to false in which case you must supply the subsequent values.
+#use_existing_vpc: true
+existing_vpc_id:
+#new_vpc_cidr:
+
+use_existing_keypair:
+#keypair_name: cfy_cassandra_keypair
+#ssh_key_filename: ~/.ssh/cfy_cassandra_keypair.pem

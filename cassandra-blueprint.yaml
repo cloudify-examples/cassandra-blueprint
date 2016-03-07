@@ -21,47 +21,74 @@ inputs:
 
   ec2_region_name:
     type: string
-    default: us-east-1
+
+  server_image_id:
+    type: string
+
+  ssh_username:
+    type: string
+
+  package_format:
+    type: string
+
+  server_instance_type:
+    type: string
 
   use_existing_security_group:
     type: boolean
     default: true
 
+  existing_security_group_id:
+    type: string
+    default: ' '
+
+  new_security_group_protocol:
+    type: string
+    default: -1
+
+  new_security_group_from_port:
+    type: string
+    default: None
+
+  new_security_group_to_port:
+    type: string
+    default: None
+
+  new_security_group_cidr:
+    type: string
+    default: 0.0.0.0/0
+
   use_existing_subnet:
     type: boolean
     default: true
+
+  existing_subnet_id:
+    type: string
+    default: ' '
+
+  new_subnet_avail_zone:
+    type: string
+    default: ' '
+
+  new_subnet_cidr:
+    type: string
+    default: ' '
 
   use_existing_vpc:
     type: boolean
     default: true
 
-  security_group_id:
+  existing_vpc_id:
     type: string
     default: ' '
 
-  subnet_id:
-    type: string
-    default: ' '
-
-  vpc_id:
-    type: string
-    default: ' '
-
-  subnet_cidr:
-    type: string
-    default: ' '
-
-  vpc_cidr:
-    type: string
-    default: ' '
-
-  subnet_avail_zone:
+  new_vpc_cidr:
     type: string
     default: ' '
 
   use_existing_keypair:
     type: boolean
-    default: false
+    default: true
 
   keypair_name:
     type: string
@@ -70,21 +97,6 @@ inputs:
   ssh_key_filename:
     type: string
     default: ~/.ssh/cfy_cassandra_keypair.pem
-
-  ssh_username:
-    type: string
-    default: ec2-user
-
-  server_instance_type:
-    type: string
-    default: c4.large
-
-  server_image_id:
-    type: string
-    default: ami-2051294a
-
-  package_format:
-    default: rpm
 
 dsl_definitions:
   aws_config: &AWS_CONFIG
@@ -114,31 +126,31 @@ node_templates:
     properties:
       aws_config: *AWS_CONFIG
       use_external_resource: { get_input: use_existing_subnet }
-      resource_id: { get_input: subnet_id }
-      cidr_block: { get_input: subnet_cidr }
-      availability_zone: { get_input: subnet_avail_zone }
+      resource_id: { get_input: existing_subnet_id }
+      cidr_block: { get_input: new_subnet_cidr }
+      availability_zone: { get_input: new_subnet_avail_zone }
 
   cassandra_vpc:
     type: cloudify.aws.nodes.VPC
     properties:
       aws_config: *AWS_CONFIG
       use_external_resource: { get_input: use_existing_vpc }
-      resource_id: { get_input: vpc_id }
-      cidr_block: { get_input: vpc_cidr }
+      resource_id: { get_input: existing_vpc_id }
+      cidr_block: { get_input: new_vpc_cidr }
 
   cassandra_security_group:
     type: cloudify.aws.nodes.SecurityGroup
     properties:
       aws_config: *AWS_CONFIG
       use_external_resource: { get_input: use_existing_security_group }
-      resource_id: { get_input: security_group_id }
+      resource_id: { get_input: existing_security_group_id }
       description: Security group for Cassandra Cluster
       rules:
         # http://stackoverflow.com/questions/28736846/how-to-add-inbound-rules-for-aws-ec2-security-group-for-all-traffic
-        - ip_protocol: -1
-          from_port: None
-          to_port: None
-          cidr_ip: 0.0.0.0/0
+        - ip_protocol: { get_input: new_security_group_protocol }
+          from_port: { get_input: new_security_group_from_port }
+          to_port: { get_input: new_security_group_to_port }
+          cidr_ip: { get_input: new_security_group_cidr }
     relationships:
       - type: cloudify.aws.relationships.security_group_contained_in_vpc
         target: cassandra_vpc
