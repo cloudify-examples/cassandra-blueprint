@@ -31,6 +31,6 @@ existing_subnet_id:
 existing_vpc_id:
 #new_vpc_cidr:
 
-use_existing_keypair:
+#use_existing_keypair: true
 #keypair_name: cfy_cassandra_keypair
 #ssh_key_filename: ~/.ssh/cfy_cassandra_keypair.pem
