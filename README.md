@@ -11,5 +11,5 @@ a Cloudify blueprint to demonstrate orchestrating a Cassandra cluster
 ## Requirements
 * Cloudify version 3.3.1
 * AWS plugin version 1.4
-** Cloudify 3.3.0 and AWS plugin 1.3 are not supported
-** ```cfy local``` workflow is not supported
+  * Cloudify 3.3.0 and AWS plugin 1.3 are not supported
+  * ```cfy local``` workflow is not supported
