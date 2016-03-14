@@ -118,7 +118,7 @@ inputs:
   ssh_key_filename:
     type: string
     default: ~/.ssh/cfy_cassandra_keypair.pem
-    desription: Local path on Cloudify host running this blueprint where SSH key will either be loaded from or downloaded to.
+    description: Local path on Cloudify host running this blueprint where SSH key will either be loaded from or downloaded to.
 
 dsl_definitions:
   aws_config: &AWS_CONFIG
