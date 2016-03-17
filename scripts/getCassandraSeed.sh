@@ -9,7 +9,7 @@ cat >> $wrapped_script_for_sudo << "wrapped_script_for_sudo_EOF"
 
 seed=`ctx target instance host_ip`
 echo $seed > /etc/cassandra/cloudify-seed-ip
-while ! cqlsh -e exit $seed 2> /dev/null ; do sleep 1 ; done
+while cqlsh -e 'show host' $seed 2>&1 | grep 'Connection error' > /dev/null ; do sleep 1 ; done
 
 
 
