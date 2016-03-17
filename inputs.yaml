@@ -34,3 +34,7 @@ existing_vpc_id:
 #use_existing_keypair: true
 #keypair_name: cfy_cassandra_keypair
 #ssh_key_filename: ~/.ssh/cfy_cassandra_keypair.pem
+
+# Increase this value to deploy a cluster that starts with more nodes to begin with.
+# You can always add more later through the scale workflow regardless.
+#init_num_peer_hosts: 1
