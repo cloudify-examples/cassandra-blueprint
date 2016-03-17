@@ -120,11 +120,6 @@ inputs:
     default: ~/.ssh/cfy_cassandra_keypair.pem
     description: Local path on Cloudify host running this blueprint where SSH key will either be loaded from or downloaded to.
 
-  init_num_peer_hosts:
-    type: integer
-    default: 1
-    description: Number of peer host instances to deploy initially. More can be added to the cluster later through the scale workflow.
-
 dsl_definitions:
   aws_config: &AWS_CONFIG
     aws_access_key_id: { get_input: aws_access_key_id }
@@ -225,7 +220,7 @@ node_templates:
   cassandra_peer_host:
     type: cloudify.aws.nodes.Instance
     instances:
-      deploy: { get_input: init_num_peer_hosts }
+      deploy: 1
     properties:
       agent_config:
         user: { get_input: ssh_username }
