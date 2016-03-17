@@ -242,7 +242,7 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: cassandra_peer_host
       - type: slave_depends_on_master
-        target: cassandra_seed_host
+        target: cassandra_seed_installation
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
