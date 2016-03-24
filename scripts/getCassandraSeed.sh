@@ -9,7 +9,7 @@ cat >> $wrapped_script_for_sudo << "wrapped_script_for_sudo_EOF"
 
 seed=`ctx target instance host_ip`
 echo $seed > /etc/cassandra/cloudify-seed-ip
-while ! [[ "$(ctx target instance runtime_properties last_command)" =~ 'start$' ]] ; do sleep 1 ; done
+while ! [[ "$(ctx target instance runtime_properties last_command)" =~ start$ ]] ; do sleep 1 ; done
 
 
 
