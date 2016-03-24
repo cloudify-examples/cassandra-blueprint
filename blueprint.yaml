@@ -264,3 +264,8 @@ outputs:
     description: Cassandra cluster seed node
     value:
       cassandra_cluster: { get_attribute: [ cassandra_seed_host, ip ] }
+
+  opscenter:
+    description: DataStax OpsCenter URL
+    value:
+      opscenter_url: { concat: ['http://', { get_attribute: [ cassandra_seed_host, ip ] }, ':8888'] }

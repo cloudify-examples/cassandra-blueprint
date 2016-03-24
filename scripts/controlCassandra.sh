@@ -7,12 +7,13 @@ cat >> $wrapped_script_for_sudo << "wrapped_script_for_sudo_EOF"
 
 
 
-command=`ctx operation name | awk -F . '{print $NF}'`
-
 ctx logger info "$command Cassandra BEGIN"
 
+command=`ctx operation name | awk -F . '{print $NF}'`
+
+[ -e /etc/cassandra/cloudify-seed-ip ] || service opscenterd $command
 service cassandra $command
-service opscenterd $command
+service datastax-agent $command
 
 ctx instance runtime_properties last_command $command
 

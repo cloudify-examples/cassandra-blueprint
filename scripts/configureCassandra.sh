@@ -26,27 +26,29 @@ if [ -e $seed ] ; then {
 
 	seed=$ip
 
+	mkdir -p /etc/opscenter/clusters
+	cat >> /etc/opscenter/clusters/Test_Cluster.conf <<- "EOF"
+		[jmx]
+		username = 
+		password = 
+		port = 7199
+
+		[agents]
+
+		[cassandra]
+		username = 
+		seed_hosts = 127.0.0.1
+		password = 
+		cql_port = 9042
+		EOF
+	sed -ri "s/127.0.0.1/$seed/" /etc/opscenter/clusters/Test_Cluster.conf
+
 } ;  fi
 
 sed -ri "s/^([ ]+- seeds: \")127.0.0.1(\".*)$/\1$seed\2/" $cassandra_conf
 sed -ri "s/^(listen|rpc)(_address: )localhost(.*)$/\1\2$ip\3/" $cassandra_conf
 
-mkdir -p /etc/opscenter/clusters
-cat >> /etc/opscenter/clusters/Test_Cluster.conf <<- "EOF"
-	[jmx]
-	username = 
-	password = 
-	port = 7199
-
-	[agents]
-
-	[cassandra]
-	username = 
-	seed_hosts = 127.0.0.1
-	password = 
-	cql_port = 9042
-	EOF
-sed -ri "s/127.0.0.1/$seed/" /etc/opscenter/clusters/Test_Cluster.conf
+echo stomp_interface: $seed > /var/lib/datastax-agent/conf/address.yaml
 
 ctx logger info "configure Cassandra COMPLETED"
 
