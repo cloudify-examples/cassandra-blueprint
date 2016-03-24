@@ -14,6 +14,8 @@ ctx logger info "$command Cassandra BEGIN"
 service cassandra $command
 service opscenterd $command
 
+ctx instance runtime_properties last_command $command
+
 ctx logger info "$command Cassandra COMPLETED"
 
 
