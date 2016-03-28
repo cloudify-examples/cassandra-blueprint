@@ -17,9 +17,12 @@ listens=`cat $log 2> /dev/null | egrep -ic "$msg"`
 
 service cassandra $command
 [ -e /etc/cassandra/cloudify-seed-ip ] || service opscenterd $command
-
-[[ "$command" =~ start$ ]] && while ! [ `cat $log 2> /dev/null | egrep -ic "$msg"` -gt $listens ] ; do sleep 1 ; done
 service datastax-agent $command
+
+if [[ "$command" =~ start$ ]] ; then {
+	while ! [ `cat $log 2> /dev/null | egrep -ic "$msg"` -gt $listens ] ; do sleep 1 ; done
+	service datastax-agent restart
+} ; fi
 
 ctx instance runtime_properties last_command $command
 
