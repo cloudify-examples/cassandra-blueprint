@@ -13,12 +13,12 @@ command=`ctx operation name | awk -F . '{print $NF}'`
 
 log=/var/log/cassandra/system.log
 msg='listening for.* clients'
-listens=`egrep -ic "$msg" $log`
+listens=`cat $log 2> /dev/null | egrep -ic "$msg"`
 
 service cassandra $command
 [ -e /etc/cassandra/cloudify-seed-ip ] || service opscenterd $command
 
-[[ "$command" =~ start$ ]] && while ! [ `egrep -ic "$msg" $log` -gt $listens ] ; do sleep 1 ; done
+[[ "$command" =~ start$ ]] && while ! [ `cat $log 2> /dev/null | egrep -ic "$msg"` -gt $listens ] ; do sleep 1 ; done
 service datastax-agent $command
 
 ctx instance runtime_properties last_command $command
