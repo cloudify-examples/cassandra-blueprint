@@ -1,3 +1,5 @@
+[![Build Status](https://circleci.com/gh/cloudify-examples/cassandra-blueprint.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/cloudify-examples/cassandra-blueprint)
+
 # demoCassandraBlueprint
 a Cloudify blueprint to demonstrate orchestrating a Cassandra cluster
 
