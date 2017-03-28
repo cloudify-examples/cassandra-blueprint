@@ -21,8 +21,7 @@ dependencies:
 
 test:
   override:
-    - cfy init
-    - cfy blueprints validate blueprint.yaml
+    - cfy blueprints validate aws-blueprint.yaml
 
 deployment:
   release:

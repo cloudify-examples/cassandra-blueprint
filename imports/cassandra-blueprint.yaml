@@ -1,0 +1,52 @@
+
+relationships:
+
+  slave_depends_on_master:
+    derived_from: cloudify.relationships.depends_on
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        preconfigure: scripts/getCassandraSeed.sh
+
+node_templates:
+
+  cassandra_seed_installation:
+    type: cloudify.nodes.DBMS
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: cassandra_seed_host
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/installCassandra.sh
+          inputs:
+            process:
+              env:
+                PLATFORM: { get_input: package_format }
+        configure:
+          implementation: scripts/configureCassandra.sh
+        start:
+          implementation: scripts/controlCassandra.sh
+        stop:
+          implementation: scripts/controlCassandra.sh
+
+  cassandra_peer_installation:
+    type: cloudify.nodes.DBMS
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: cassandra_peer_host
+      - type: slave_depends_on_master
+        target: cassandra_seed_installation
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/installCassandra.sh
+          inputs:
+            process:
+              env:
+                PLATFORM: { get_input: package_format }
+        configure:
+          implementation: scripts/configureCassandra.sh
+        start:
+          implementation: scripts/controlCassandra.sh
+        stop:
+          implementation: scripts/controlCassandra.sh

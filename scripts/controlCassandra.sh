@@ -6,10 +6,9 @@ echo "PATH=$PATH" >> $wrapped_script_for_sudo
 cat >> $wrapped_script_for_sudo << "wrapped_script_for_sudo_EOF"
 
 
+command=`ctx operation name | awk -F . '{print $NF}'`
 
 ctx logger info "$command Cassandra BEGIN"
-
-command=`ctx operation name | awk -F . '{print $NF}'`
 
 log=/var/log/cassandra/system.log
 msg='listening for.* clients'
